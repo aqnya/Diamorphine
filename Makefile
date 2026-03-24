@@ -7,3 +7,5 @@ all:
 	make -C $(KDIR) M=$(MDIR) modules
 clean:
 	make -C $(KDIR) M=$(MDIR) clean
+	
+ccflags-y += -I$(srctree)/arch/arm64/mm

