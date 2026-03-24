@@ -57,3 +57,61 @@ static struct kprobe kp = {
 };
 #endif
 
+
+/* compat_update_mapping_prot.h */
+#pragma once
+
+#include <linux/mm.h>
+#include <linux/pgtable.h>
+#include <linux/vmalloc.h>
+
+struct prot_update_data {
+    pgprot_t prot;
+};
+
+static int update_pte_callback(pte_t *ptep, unsigned long addr,
+                                void *data)
+{
+    struct prot_update_data *d = data;
+    pte_t old_pte = READ_ONCE(*ptep);
+    pte_t new_pte;
+
+    if (!pte_present(old_pte))
+        return 0;
+
+    new_pte = pfn_pte(pte_pfn(old_pte), d->prot);
+
+    set_pte(ptep, new_pte);
+
+    return 0;
+}
+
+static inline int compat_update_mapping_prot(phys_addr_t phys,
+                                              unsigned long virt,
+                                              phys_addr_t size,
+                                              pgprot_t prot)
+{
+    struct prot_update_data data = { .prot = prot };
+    int ret;
+
+    if (!size)
+        return 0;
+
+    WARN_ON(!virt || virt < PAGE_OFFSET);
+
+    ret = apply_to_page_range(&init_mm, virt, size,
+                              update_pte_callback, &data);
+    if (ret)
+        return ret;
+
+    flush_tlb_kernel_range(virt, virt + size);
+
+    if (pgprot_val(prot) & PTE_VALID) {
+#ifdef CONFIG_ARM64
+        if (!(pgprot_val(prot) & PTE_PXN))
+            sync_icache_aliases((void *)virt, (void *)(virt + size));
+#endif
+    }
+
+    return 0;
+}
