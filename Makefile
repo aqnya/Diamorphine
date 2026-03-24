@@ -1,10 +1,9 @@
 obj-m := diamorphine.o
-CC = gcc -Wall 
-KDIR := /lib/modules/$(shell uname -r)/build
-PWD := $(shell pwd)
+KDIR := $(KDIR)
+MDIR := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+IDIR := $(MDIR)/src/include
 
 all:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules
-
+	make -C $(KDIR) M=$(MDIR) modules
 clean:
-	$(MAKE) -C $(KDIR) M=$(PWD) clean
+	make -C $(KDIR) M=$(MDIR) clean
