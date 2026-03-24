@@ -106,12 +106,5 @@ static inline int compat_update_mapping_prot(phys_addr_t phys,
 
     flush_tlb_kernel_range(virt, virt + size);
 
-    if (pgprot_val(prot) & PTE_VALID) {
-#ifdef CONFIG_ARM64
-    if (!(pgprot_val(prot) & PTE_PXN))
-        flush_icache_range(virt, virt + size);
-#endif
-    }
-
     return 0;
 }
